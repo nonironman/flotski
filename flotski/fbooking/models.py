@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from django.core.exceptions import ValidationError
 from django.db import models
 
 # Create your models here.
-
 class Room(models.Model):
     description = models.CharField(max_length=255)
     beds = models.IntegerField()
@@ -15,10 +15,10 @@ class Permission(models.Model):
 
 class User(models.Model):
     username = models.CharField(max_length=15)
-    first_name = models.CharField(max_length=15)
-    last_name = models.CharField(max_length=15)
+    first_name = models.CharField(max_length=35)
+    last_name = models.CharField(max_length=35)
     password = models.TextField()
-    description = models.CharField(max_length=255)
+    description = models.CharField(max_length=255, null=True)
 
 class Booking(models.Model):
     start_date = models.DateField()
@@ -28,8 +28,8 @@ class Booking(models.Model):
     creation_date = models.DateField()
 
 class Guest(models.Model):
-    first_name = models.CharField(max_length=15)
-    last_name = models.CharField(max_length=15)
+    first_name = models.CharField(max_length=35)
+    last_name = models.CharField(max_length=35)
     passport = models.CharField(max_length=15)
     birthdate = models.DateField()
 
