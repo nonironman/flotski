@@ -50,11 +50,14 @@ class UserModelTestCase(TestCase):
         username = "user_to_remove"
         user = self._prepare_test_user_object(username, "", "", "", None)
         user.save()
+        user = User.objects.get(username=username)
         user.delete()
         try:
             User.objects.get(username=username)
+        except ObjectDoesNotExist:
+            pass
         except Exception as e:
-            self.assertIsInstance(e, ObjectDoesNotExist, "Found removed user row in DB")
+            raise e
         else:
             self.assertTrue(False, "User was found or exception was not thrown")
 
@@ -71,6 +74,84 @@ class UserModelTestCase(TestCase):
         self.assertEqual((user.username, user.first_name, user.last_name, user.description),
                          new_properties, "User was not updated properly")
 
+
+class PermissionModelTestCase(TestCase):
+
+    def _prepare_permission_object(self, access, description):
+        permission = Permission()
+        permission.access = access
+        permission.description = description
+        return permission
+
+    @parameterized.expand([
+        ['w', 'write access'],
+        ['r', 'read access'],
+        ['u', 'update access'],
+        ['d', 'delete access']
+    ])
+    def test_add_permission(self, access, description):
+        permission = self._prepare_permission_object(access,description)
+        permission.save()
+        permission.refresh_from_db()
+        self.assertEqual((permission.access, permission.description), (access, description),
+                         "Specified permission was not saved properly")
+
+
+    @parameterized.expand([
+        ['w', None],
+        [None, 'delete access']
+    ])
+    def test_add_invalid_permission(self, access, description):
+        permission = self._prepare_permission_object(access, description)
+        try:
+            permission.save()
+        except IntegrityError:
+            pass
+        except Exception as e:
+            raise e
+        else:
+            self.assertTrue(False, "Invalid permission was saved or exception was not thrown")
+
+    def test_add_duplicate_permission(self):
+        write_permission_1 = self._prepare_permission_object("w", "write access 1")
+        write_permission_2 = self._prepare_permission_object("w", "write access 2")
+        write_permission_1.save()
+        try:
+            write_permission_2.save()
+        except IntegrityError:
+            pass
+        except Exception as e:
+            raise e
+        else:
+            self.assertTrue(False,"Duplicated permission was added or exception wasn't thrown")
+
+    def test_remove_permission(self):
+        access, description = "s", "test permission"
+        permission = self._prepare_permission_object(access,description)
+        permission.save()
+        permission = Permission.objects.get(access=access)
+        permission.delete()
+        try:
+            Permission.objects.get(access=access)
+        except ObjectDoesNotExist:
+            pass
+        except Exception as e:
+            raise e
+        else:
+            self.assertEqual(False, "Removed permission was found or exception wasn't thrown")
+
+    def test_update_permission(self):
+        permission = self._prepare_permission_object('u', "update permission")
+        permission.save()
+        prev_permission_id, prev_permission_access, prev_permission_desc = (permission.id, permission.access, permission.description)
+        new_access, new_description = "X", "execute permission"
+        permission.access = new_access
+        permission.description = new_description
+        permission.save()
+        permission.refresh_from_db()
+        self.assertEqual(prev_permission_id, permission.id, "Permission id was updated")
+        self.assertEqual((permission.access, permission.description), (new_access, new_description),
+                         "Permission was not updated properly")
 
 class ModelTestCase(TestCase):
     users = []
@@ -92,16 +173,6 @@ class ModelTestCase(TestCase):
         guest_1 = Guest.objects.create(first_name="Ichkebek", last_name="Tiger", passport='12345678',
                                        birthdate=datetime.date(1967, 02, 12))
         self.guests.append(guest_1)
-
-    # Permissions
-    def test_add_permission(self):
-        pass
-
-    def test_remove_permission(self):
-        pass
-
-    def test_update_permission(self):
-        pass
 
     # Permission To user
     def test_assign_existing_permissions_to_user(self):
