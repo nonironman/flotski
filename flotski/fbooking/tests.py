@@ -232,10 +232,19 @@ class GuestModelTestCase(TransactionTestCase):
 
 
 class BookingModelTestCase(TransactionTestCase):
+    def activate_foreign_keys(self, state='ON'):
+        if connection.vendor == 'sqlite':
+            with connection.cursor() as cursor:
+                cursor.execute('PRAGMA foreign_keys = %s;'%state)
+
     def setUp(self):
+        self.activate_foreign_keys()
         self.room = Room.objects.create(beds=2, description="test room")
         self.user = User.objects.create(username="tuser", first_name='tuser First Name', last_name='tuser Last Name',
                                         password='change_me2', description=None)
+
+    def tearDown(self):
+        self.activate_foreign_keys('OFF')
 
     def test_add_valid_booking(self):
         start_date, end_date, user_id, room_id = datetime.datetime(2019, 1, 1), datetime.datetime(2019, 1, 11), \
@@ -253,9 +262,9 @@ class BookingModelTestCase(TransactionTestCase):
     def test_add_invalid_booking(self):
         def get_next_available_id(model_class):
             with connection.cursor() as cursor:
-                cursor.execute("select nextval('%s_id_seq')" % model_class._meta.db_table)
+                cursor.execute("select max(id) from %s" % model_class._meta.db_table)
                 result = cursor.fetchone()
-                next_id_from_seq = result[0]
+                next_id_from_seq = result[0] + 1
             return next_id_from_seq
 
         not_saved_user = copy(self.user)
