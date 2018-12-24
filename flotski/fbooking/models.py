@@ -28,13 +28,17 @@ class Booking(models.Model):
 class Guest(models.Model):
     first_name = models.CharField(max_length=35)
     last_name = models.CharField(max_length=35)
-    passport = models.CharField(max_length=15)
+    passport = models.CharField(max_length=15, unique=True)
     birthdate = models.DateField()
 
 class PermissionToUser(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     permission_id = models.ForeignKey(Permission, on_delete=models.CASCADE)
+    class Meta:
+        unique_together = ('user_id', 'permission_id')
 
 class GuestToBooking(models.Model):
     guest_id = models.ForeignKey(Guest, on_delete=models.CASCADE)
     booking_id = models.ForeignKey(Booking, on_delete=models.CASCADE)
+    class Meta:
+        unique_together = ('guest_id', 'booking_id')
