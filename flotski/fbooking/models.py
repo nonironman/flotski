@@ -24,7 +24,7 @@ class User(models.Model):
     username = models.CharField(max_length=15)
     first_name = models.CharField(max_length=35)
     last_name = models.CharField(max_length=35)
-    password = models.TextField()
+    password = models.CharField(max_length=64)
     description = models.CharField(max_length=255, null=True)
 
 class Booking(models.Model):

@@ -1,4 +1,5 @@
 import datetime
+import hashlib
 from copy import copy
 
 from django.db import IntegrityError, connection
@@ -19,8 +20,8 @@ class UserModelTestCase(TransactionTestCase):
         return user
 
     @parameterized.expand([
-        ["valid_tuser1", "change_Me_1", "TestUserFirstName", "TestUserLastName", "test description"],
-        ["valid_tuser2", "change_Me_2", "TestUserFirstName", "TestUserLastName", None],
+        ["valid_tuser1", hashlib.sha256("change_Me_1").hexdigest(), "TestUserFirstName", "TestUserLastName", "test description"],
+        ["valid_tuser2", hashlib.sha256("change_Me_2").hexdigest(), "TestUserFirstName", "TestUserLastName", None],
     ])
     def test_add_valid_user(self, username, password, first_name, last_name, description):
         user = self._prepare_test_user_object(username, password, first_name, last_name, description)
@@ -33,10 +34,10 @@ class UserModelTestCase(TransactionTestCase):
                          "Saved user data doesn't match expected")
 
     @parameterized.expand([
-        [None, "change_Me_1", "TestUserFirstName", "TestUserLastName", "test description"],
+        [None, hashlib.sha256("change_Me_1").hexdigest(), "TestUserFirstName", "TestUserLastName", "test description"],
         ["invalid_tuser2", None, "TestUserFirstName", "TestUserLastName", None],
-        ["invalid_tuser3", "change_Me_3", None, "TestUserLastName", None],
-        ["invalid_tuser4", "change_Me_4", "TestUserFirstName", None, None],
+        ["invalid_tuser3", hashlib.sha256("change_Me_3").hexdigest(), None, "TestUserLastName", None],
+        ["invalid_tuser4", hashlib.sha256("change_Me_4").hexdigest(), "TestUserFirstName", None, None],
     ])
     def test_add_valid_user(self, username, password, first_name, last_name, description):
         user = self._prepare_test_user_object(username, password, first_name, last_name, description)
@@ -241,7 +242,7 @@ class BookingModelTestCase(TransactionTestCase):
         self.activate_foreign_keys()
         self.room = Room.objects.create(beds=2, description="test room")
         self.user = User.objects.create(username="tuser", first_name='tuser First Name', last_name='tuser Last Name',
-                                        password='change_me2', description=None)
+                                        password=hashlib.sha256("change_Me2").hexdigest(), description=None)
 
     def tearDown(self):
         self.activate_foreign_keys('OFF')
@@ -344,7 +345,7 @@ class GuestToBookingModelTestCase(TransactionTestCase):
         test_user = User.objects.create(username='tuser',
                                         first_name='Tuser',
                                         last_name='Tuser',
-                                        password='Change_Me1',
+                                        password=hashlib.sha256("change_Me_1").hexdigest(),
                                         description="")
         test_room = Room.objects.create(beds=2,
                                         description="")
