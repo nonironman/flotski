@@ -189,30 +189,13 @@
 											"height": 13,
 											"text": "+beds",
 											"horizontalAlignment": 0
-										},
-										{
-											"_type": "UMLSlotView",
-											"_id": "AAAAAAFoHzoh+pMNm84=",
-											"_parent": {
-												"$ref": "AAAAAAFldWHKS2fSLVE="
-											},
-											"model": {
-												"$ref": "AAAAAAFoHzoh3ZMK+kQ="
-											},
-											"font": "Arial;13;0",
-											"left": 37,
-											"top": 138,
-											"width": 111,
-											"height": 13,
-											"text": "+user id",
-											"horizontalAlignment": 0
 										}
 									],
 									"font": "Arial;13;0",
 									"left": 32,
 									"top": 73,
 									"width": 121,
-									"height": 83
+									"height": 68
 								}
 							],
 							"font": "Arial;13;0",
@@ -639,13 +622,30 @@
 											"height": 13,
 											"text": "+creation date",
 											"horizontalAlignment": 0
+										},
+										{
+											"_type": "UMLSlotView",
+											"_id": "AAAAAAFoJGjyyM1qKbg=",
+											"_parent": {
+												"$ref": "AAAAAAFldWWUPWhpzKQ="
+											},
+											"model": {
+												"$ref": "AAAAAAFoJGjyfM1noG8="
+											},
+											"font": "Arial;13;0",
+											"left": 261,
+											"top": 152,
+											"width": 167,
+											"height": 13,
+											"text": "+room state",
+											"horizontalAlignment": 0
 										}
 									],
 									"font": "Arial;13;0",
 									"left": 256,
 									"top": 57,
 									"width": 177,
-									"height": 98
+									"height": 113
 								}
 							],
 							"font": "Arial;13;0",
@@ -2966,14 +2966,6 @@
 							},
 							"name": "beds",
 							"type": ""
-						},
-						{
-							"_type": "UMLSlot",
-							"_id": "AAAAAAFoHzoh3ZMK+kQ=",
-							"_parent": {
-								"$ref": "AAAAAAFldWHKRWfKLQQ="
-							},
-							"name": "user id"
 						}
 					]
 				},
@@ -3122,6 +3114,14 @@
 							},
 							"name": "creation date",
 							"type": ""
+						},
+						{
+							"_type": "UMLSlot",
+							"_id": "AAAAAAFoJGjyfM1noG8=",
+							"_parent": {
+								"$ref": "AAAAAAFldWWUPGhhu0g="
+							},
+							"name": "room state"
 						}
 					]
 				},
