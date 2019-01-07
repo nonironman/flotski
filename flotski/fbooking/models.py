@@ -4,8 +4,15 @@ from __future__ import unicode_literals
 from django.db import models
 
 class Room(models.Model):
+    ACTIVE = 1
+    INACTIVE = 0
+    ROOM_STATE = (
+        (ACTIVE, 'active'),
+        (INACTIVE, 'inactive'),
+    )
     description = models.CharField(max_length=255, null=True)
     beds = models.IntegerField()
+    state = models.IntegerField(choices=ROOM_STATE, default=ACTIVE)
 
 class Permission(models.Model):
     access = models.CharField(max_length=1, unique=True)

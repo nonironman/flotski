@@ -46,7 +46,7 @@ class UserModelTestCase(TransactionTestCase):
 
     def test_remove_user(self):
         """
-        Note: User should not be removed from DB, user's should be changed instead
+        Note: User should not be removed from DB, user's state should be changed instead
         """
         username = "user_to_remove"
         user = self._prepare_test_user_object(username, "", "", "", None)
@@ -153,13 +153,19 @@ class RoomModelTestCase(TransactionTestCase):
             room.save()
 
     def test_remove_room(self):
+        """
+        Note: Room object should not be removed, room state should be changed insteadd
+        :return:
+        """
         beds, description = 2, "test room"
         room = self._prepare_room_object(beds, description)
         room.save()
-        room = Room.objects.get(id=room.id)
-        room.delete()
-        with self.assertRaises(ObjectDoesNotExist):
-            Room.objects.get(id=room.id)
+        room.refresh_from_db()
+        self.assertEqual(room.state, 1, "Created room is not in ACTIVE (1) state")
+        room.state = 0
+        room.save()
+        room.refresh_from_db()
+        self.assertEqual(room.state, 0, "Room state is not changed to INACTIVE (0)")
 
     def test_update_room(self):
         beds, description = 2, "test room"
