@@ -24,6 +24,7 @@ class Booking(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     room = models.ForeignKey(Room, on_delete=models.CASCADE)
     creation_date = models.DateField(auto_now_add=True)
+    description = models.CharField(max_length=255, null=True)
 
 class Guest(models.Model):
     first_name = models.CharField(max_length=35)
