@@ -12,10 +12,18 @@ class Permission(models.Model):
     description = models.CharField(max_length=255)
 
 class User(models.Model):
+    ACTIVE = 1
+    INACTIVE = 0
+    USER_STATE = (
+        (ACTIVE, 'active'),
+        (INACTIVE, 'inactive'),
+    )
+    description = models.CharField(max_length=255, null=True)
     username = models.CharField(max_length=15)
     first_name = models.CharField(max_length=35)
     last_name = models.CharField(max_length=35)
     password = models.CharField(max_length=64)
+    state = models.IntegerField(choices=USER_STATE,default=ACTIVE)
     description = models.CharField(max_length=255, null=True)
 
 class Booking(models.Model):

@@ -45,13 +45,18 @@ class UserModelTestCase(TransactionTestCase):
             user.save()
 
     def test_remove_user(self):
+        """
+        Note: User should not be removed from DB, user's should be changed instead
+        """
         username = "user_to_remove"
         user = self._prepare_test_user_object(username, "", "", "", None)
         user.save()
         user = User.objects.get(username=username)
-        user.delete()
-        with self.assertRaises(ObjectDoesNotExist):
-            User.objects.get(username=username)
+        self.assertEqual(user.state, 1, "Created user state is not ACTIVE (1)")
+        user.state = 0
+        user.save()
+        user.refresh_from_db()
+        self.assertEqual(user.state, 0, "Created user state is not changed to INACTIVE (0)")
 
     def test_update_user(self):
         username = "user_to_update"
