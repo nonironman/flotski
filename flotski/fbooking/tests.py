@@ -5,7 +5,7 @@ from copy import copy
 from django.db import IntegrityError, connection
 from parameterized import parameterized
 from django.test import TransactionTestCase
-from models import User, Room, Permission, PermissionToUser, Guest, Booking, GuestToBooking
+from fbooking.models import User, Room, Permission, PermissionToUser, Guest, Booking, GuestToBooking
 from django.core.exceptions import ObjectDoesNotExist
 
 
@@ -20,8 +20,8 @@ class UserModelTestCase(TransactionTestCase):
         return user
 
     @parameterized.expand([
-        ["valid_tuser1", hashlib.sha256("change_Me_1").hexdigest(), "TestUserFirstName", "TestUserLastName", "test description"],
-        ["valid_tuser2", hashlib.sha256("change_Me_2").hexdigest(), "TestUserFirstName", "TestUserLastName", None],
+        ["valid_tuser1", hashlib.sha256("change_Me_1".encode('utf-8')).hexdigest(), "TestUserFirstName", "TestUserLastName", "test description"],
+        ["valid_tuser2", hashlib.sha256("change_Me_2".encode('utf-8')).hexdigest(), "TestUserFirstName", "TestUserLastName", None],
     ])
     def test_add_valid_user(self, username, password, first_name, last_name, description):
         user = self._prepare_test_user_object(username, password, first_name, last_name, description)
@@ -34,10 +34,10 @@ class UserModelTestCase(TransactionTestCase):
                          "Saved user data doesn't match expected")
 
     @parameterized.expand([
-        [None, hashlib.sha256("change_Me_1").hexdigest(), "TestUserFirstName", "TestUserLastName", "test description"],
+        [None, hashlib.sha256("change_Me_1".encode('utf-8')).hexdigest(), "TestUserFirstName", "TestUserLastName", "test description"],
         ["invalid_tuser2", None, "TestUserFirstName", "TestUserLastName", None],
-        ["invalid_tuser3", hashlib.sha256("change_Me_3").hexdigest(), None, "TestUserLastName", None],
-        ["invalid_tuser4", hashlib.sha256("change_Me_4").hexdigest(), "TestUserFirstName", None, None],
+        ["invalid_tuser3", hashlib.sha256("change_Me_3".encode('utf-8')).hexdigest(), None, "TestUserLastName", None],
+        ["invalid_tuser4", hashlib.sha256("change_Me_4".encode('utf-8')).hexdigest(), "TestUserFirstName", None, None],
     ])
     def test_add_valid_user(self, username, password, first_name, last_name, description):
         user = self._prepare_test_user_object(username, password, first_name, last_name, description)
@@ -242,7 +242,7 @@ class BookingModelTestCase(TransactionTestCase):
         self.activate_foreign_keys()
         self.room = Room.objects.create(beds=2, description="test room")
         self.user = User.objects.create(username="tuser", first_name='tuser First Name', last_name='tuser Last Name',
-                                        password=hashlib.sha256("change_Me2").hexdigest(), description=None)
+                                        password=hashlib.sha256("change_Me2".encode('utf-8')).hexdigest(), description=None)
 
     def tearDown(self):
         self.activate_foreign_keys('OFF')
@@ -345,13 +345,13 @@ class GuestToBookingModelTestCase(TransactionTestCase):
         test_user = User.objects.create(username='tuser',
                                         first_name='Tuser',
                                         last_name='Tuser',
-                                        password=hashlib.sha256("change_Me_1").hexdigest(),
+                                        password=hashlib.sha256("change_Me_1".encode('utf-8')).hexdigest(),
                                         description="")
         test_room = Room.objects.create(beds=2,
                                         description="")
         number_of_test_guests = 10
         self.guests = []
-        for idx in xrange(number_of_test_guests):
+        for idx in range(number_of_test_guests):
             guest = Guest.objects.create(first_name="test_user_%d"%idx,
                                          last_name="test_user_%d"%idx,
                                          passport="12345667%d"%idx,
@@ -360,7 +360,7 @@ class GuestToBookingModelTestCase(TransactionTestCase):
 
         number_of_test_booking = 10
         self.bookings = []
-        for idx in xrange(number_of_test_booking):
+        for idx in range(number_of_test_booking):
             booking = Booking.objects.create(start_date=datetime.datetime(2018,12,24),
                                              end_date=datetime.datetime(2019, 1, 24),
                                              user_id=test_user,
