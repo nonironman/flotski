@@ -15,8 +15,6 @@ services:
 before_script:
   - psql -c "CREATE DATABASE test;" -U postgres
   - psql -c "CREATE USER test WITH PASSWORD 'test';" -U postgres
-  - psql -c "GRANT ALL ON test TO test" -U postgres
-  -
 script:
   - sh make_migrations.sh
   - sh migrate.sh
