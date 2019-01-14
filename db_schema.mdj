@@ -57,7 +57,7 @@
 									"font": "Arial;13;1",
 									"left": 48,
 									"top": 29,
-									"width": 246.00439453125,
+									"width": 265.5107421875,
 									"height": 13,
 									"text": "Room"
 								},
@@ -83,7 +83,7 @@
 											"font": "Arial;13;0",
 											"left": 53,
 											"top": 52,
-											"width": 236.00439453125,
+											"width": 255.5107421875,
 											"height": 13
 										},
 										{
@@ -98,7 +98,7 @@
 											"font": "Arial;13;0",
 											"left": 53,
 											"top": 67,
-											"width": 236.00439453125,
+											"width": 255.5107421875,
 											"height": 13
 										},
 										{
@@ -113,7 +113,7 @@
 											"font": "Arial;13;0",
 											"left": 53,
 											"top": 82,
-											"width": 236.00439453125,
+											"width": 255.5107421875,
 											"height": 13
 										},
 										{
@@ -128,21 +128,21 @@
 											"font": "Arial;13;0",
 											"left": 53,
 											"top": 97,
-											"width": 236.00439453125,
+											"width": 255.5107421875,
 											"height": 13
 										}
 									],
 									"font": "Arial;13;0",
 									"left": 48,
 									"top": 47,
-									"width": 246.00439453125,
+									"width": 265.5107421875,
 									"height": 68
 								}
 							],
 							"font": "Arial;13;0",
 							"left": 48,
 							"top": 24,
-							"width": 246.00439453125,
+							"width": 265.5107421875,
 							"height": 104,
 							"nameLabel": {
 								"$ref": "AAAAAAFoTPbXHkTg1t8="
@@ -810,7 +810,7 @@
 									"font": "Arial;13;1",
 									"left": 320,
 									"top": 405,
-									"width": 185,
+									"width": 209.8544921875,
 									"height": 13,
 									"text": "GuestToBooking"
 								},
@@ -836,7 +836,7 @@
 											"font": "Arial;13;0",
 											"left": 325,
 											"top": 428,
-											"width": 175,
+											"width": 199.8544921875,
 											"height": 13
 										},
 										{
@@ -851,21 +851,21 @@
 											"font": "Arial;13;0",
 											"left": 325,
 											"top": 443,
-											"width": 175,
+											"width": 199.8544921875,
 											"height": 13
 										}
 									],
 									"font": "Arial;13;0",
 									"left": 320,
 									"top": 423,
-									"width": 185,
+									"width": 209.8544921875,
 									"height": 38
 								}
 							],
 							"font": "Arial;13;0",
 							"left": 320,
 							"top": 400,
-							"width": 185,
+							"width": 209.8544921875,
 							"height": 97,
 							"nameLabel": {
 								"$ref": "AAAAAAFoTTt460ZMg28="
@@ -1216,7 +1216,7 @@
 									},
 									"visible": false,
 									"font": "Arial;13;0",
-									"left": 547,
+									"left": 559,
 									"top": 460,
 									"height": 13,
 									"alpha": 1.5707963267948966,
@@ -1250,7 +1250,7 @@
 										"$ref": "AAAAAAFoTUAAk0bc7uI="
 									},
 									"font": "Arial;13;0",
-									"left": 529,
+									"left": 554,
 									"top": 459,
 									"height": 13,
 									"alpha": -0.5235987755982988,
@@ -1268,7 +1268,7 @@
 								"$ref": "AAAAAAFoTSDsJEVDyE8="
 							},
 							"lineStyle": 2,
-							"points": "592:451;504:451",
+							"points": "592:451;529:451",
 							"nameLabel": {
 								"$ref": "AAAAAAFoTUAAlEbdkoQ="
 							},
@@ -1488,7 +1488,7 @@
 								"$ref": "AAAAAAFoTPbXHUTdOTk="
 							},
 							"name": "room_id",
-							"type": "NUMERIC",
+							"type": "PositiveInteger",
 							"length": 0,
 							"primaryKey": true,
 							"unique": true
@@ -1511,8 +1511,7 @@
 							},
 							"name": "state",
 							"documentation": "Default = 'active' (active - 1, inactive - 0, inactive for deleted room)",
-							"type": "VARCHAR",
-							"length": "1"
+							"type": "PositiveSmallInteger"
 						},
 						{
 							"_type": "ERDColumn",
@@ -1572,7 +1571,7 @@
 								"$ref": "AAAAAAFoTRvLh0UV3aI="
 							},
 							"name": "permission_id",
-							"type": "NUMERIC",
+							"type": "PositiveInteger",
 							"length": 0,
 							"primaryKey": true,
 							"unique": true
@@ -1729,7 +1728,7 @@
 								"$ref": "AAAAAAFoTSDsI0VBdWo="
 							},
 							"name": "user_id",
-							"type": "NUMERIC",
+							"type": "PositiveInteger",
 							"primaryKey": true,
 							"unique": true
 						},
@@ -1813,7 +1812,7 @@
 								"$ref": "AAAAAAFoTTLOUEWUXQE="
 							},
 							"name": "booking_id",
-							"type": "NUMERIC",
+							"type": "PositiveInteger",
 							"length": 0,
 							"primaryKey": true,
 							"unique": true
@@ -1844,7 +1843,7 @@
 								"$ref": "AAAAAAFoTTLOUEWUXQE="
 							},
 							"name": "user_id",
-							"type": "NUMERIC",
+							"type": "PositiveInteger",
 							"length": 0,
 							"foreignKey": true,
 							"referenceTo": {
@@ -1858,7 +1857,7 @@
 								"$ref": "AAAAAAFoTTLOUEWUXQE="
 							},
 							"name": "room_id",
-							"type": "NUMERIC",
+							"type": "PositiveInteger",
 							"foreignKey": true,
 							"referenceTo": {
 								"$ref": "AAAAAAFoTPb1ekTqAHo="
@@ -1932,7 +1931,7 @@
 								"$ref": "AAAAAAFoTTeySkXiwNo="
 							},
 							"name": "guest_id",
-							"type": "NUMERIC",
+							"type": "PositiveInteger",
 							"length": 0,
 							"primaryKey": true
 						},
@@ -1984,7 +1983,7 @@
 								"$ref": "AAAAAAFoTTeySkXiwNo="
 							},
 							"name": "user_id",
-							"type": "NUMERIC",
+							"type": "PositiveInteger",
 							"length": 0,
 							"foreignKey": true,
 							"referenceTo": {
@@ -2008,7 +2007,7 @@
 								"$ref": "AAAAAAFoTTo2pkYopLg="
 							},
 							"name": "user_id",
-							"type": "NUMERIC",
+							"type": "PositiveInteger",
 							"length": 0,
 							"foreignKey": true,
 							"referenceTo": {
@@ -2022,7 +2021,7 @@
 								"$ref": "AAAAAAFoTTo2pkYopLg="
 							},
 							"name": "permission_id",
-							"type": "NUMERIC",
+							"type": "PositiveInteger",
 							"length": 0,
 							"foreignKey": true,
 							"referenceTo": {
@@ -2046,7 +2045,8 @@
 								"$ref": "AAAAAAFoTTt46UZJWfM="
 							},
 							"name": "guest_id",
-							"type": "NUMERIC",
+							"type": "PositiveInteger",
+							"foreignKey": true,
 							"referenceTo": {
 								"$ref": "AAAAAAFoTTgYEEXx7bo="
 							}
@@ -2058,7 +2058,7 @@
 								"$ref": "AAAAAAFoTTt46UZJWfM="
 							},
 							"name": "booking_id",
-							"type": "NUMERIC",
+							"type": "PositiveInteger",
 							"foreignKey": true,
 							"referenceTo": {
 								"$ref": "AAAAAAFoTTLejUWhepE="
