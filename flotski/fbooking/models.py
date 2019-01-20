@@ -11,8 +11,8 @@ class Room(models.Model):
         (INACTIVE, 'inactive'),
     )
     description = models.CharField(max_length=255, null=True)
-    beds = models.IntegerField()
-    state = models.IntegerField(choices=ROOM_STATE, default=ACTIVE)
+    beds = models.PositiveSmallIntegerField()
+    state = models.PositiveSmallIntegerField(choices=ROOM_STATE, default=ACTIVE)
 
 class Permission(models.Model):
     access = models.CharField(max_length=1, unique=True)
@@ -25,12 +25,11 @@ class User(models.Model):
         (ACTIVE, 'active'),
         (INACTIVE, 'inactive'),
     )
-    description = models.CharField(max_length=255, null=True)
     username = models.CharField(max_length=15)
     first_name = models.CharField(max_length=35)
     last_name = models.CharField(max_length=35)
     password = models.CharField(max_length=64)
-    state = models.IntegerField(choices=USER_STATE,default=ACTIVE)
+    state = models.PositiveSmallIntegerField(choices=USER_STATE,default=ACTIVE)
     description = models.CharField(max_length=255, null=True)
 
 class Booking(models.Model):
