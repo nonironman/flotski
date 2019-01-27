@@ -185,7 +185,7 @@ class GuestModelTestCase(TransactionTestCase):
 
     def setUp(self):
         self.user = User.objects.create(username='tuser1', first_name='test', last_name='test',
-                                          password=hashlib.sha256("change_Me1").hexdigest(), description="desc")
+                                          password=hashlib.sha256("change_Me1".encode('utf-8')).hexdigest(), description="desc")
 
     def _prepare_test_guest(self, first_name, last_name, passport, birth_date, user):
         guest = Guest()
