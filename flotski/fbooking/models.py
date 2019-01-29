@@ -15,7 +15,17 @@ class Room(models.Model):
     state = models.PositiveSmallIntegerField(choices=ROOM_STATE, default=ACTIVE)
 
 class Permission(models.Model):
-    access = models.CharField(max_length=1, unique=True)
+    READ = 'r'
+    CREATE = 'c'
+    CHANGE = 'h'
+    DELETE = 'd'
+    ACCESS = (
+        (READ, 'read'),
+        (CREATE, 'create'),
+        (CHANGE, 'change'),
+        (DELETE, 'delete'),
+    )
+    access = models.CharField(choices=ACCESS, max_length=1, unique=True)
     description = models.CharField(max_length=255)
 
 class User(models.Model):
@@ -25,7 +35,7 @@ class User(models.Model):
         (ACTIVE, 'active'),
         (INACTIVE, 'inactive'),
     )
-    username = models.CharField(max_length=15)
+    username = models.CharField(max_length=15, unique=True)
     first_name = models.CharField(max_length=35)
     last_name = models.CharField(max_length=35)
     password = models.CharField(max_length=64)
