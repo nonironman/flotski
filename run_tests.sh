@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
 cd flotski
-python manage.py test
+python manage.py test  fbooking.tests
