@@ -45,23 +45,28 @@ class UserModelTestCase(TransactionTestCase):
             user.save()
 
     def test_remove_user(self):
+        """
+        Note: User should not be removed from DB, user's state should be changed instead
+        """
         username = "user_to_remove"
         user = self._prepare_test_user_object(username, "", "", "", None)
         user.save()
         user = User.objects.get(username=username)
-        user.delete()
-        with self.assertRaises(ObjectDoesNotExist):
-            User.objects.get(username=username)
+        self.assertEqual(user.state, 1, "Created user state is not ACTIVE (1)")
+        user.state = 0
+        user.save()
+        user.refresh_from_db()
+        self.assertEqual(user.state, 0, "Created user state is not changed to INACTIVE (0)")
 
     def test_update_user(self):
         username = "user_to_update"
         user = self._prepare_test_user_object(username, "", "", "", None)
         user.save()
-        prev_user_id = user.id
+        prev_user = user.id
         new_properties = ("new_user_name", "new_first_name", "new_last_name", "description")
         user.username, user.first_name, user.last_name, user.description = new_properties
         user.save()
-        self.assertEqual(user.id, prev_user_id, "User id was changed")
+        self.assertEqual(user.id, prev_user, "User id was changed")
         self.assertEqual((user.username, user.first_name, user.last_name, user.description),
                          new_properties, "User was not updated properly")
 
@@ -113,13 +118,13 @@ class PermissionModelTestCase(TransactionTestCase):
     def test_update_permission(self):
         permission = self._prepare_permission_object('u', "update permission")
         permission.save()
-        prev_permission_id, prev_permission_access, prev_permission_desc = (
+        prev_permissio , prev_permission_access, prev_permission_desc = (
         permission.id, permission.access, permission.description)
         new_access, new_description = "X", "execute permission"
         permission.access = new_access
         permission.description = new_description
         permission.save()
-        self.assertEqual(prev_permission_id, permission.id, "Permission id was updated")
+        self.assertEqual(prev_permissio , permission.id, "Permission id was updated")
         self.assertEqual((permission.access, permission.description), (new_access, new_description),
                          "Permission was not updated properly")
 
@@ -148,84 +153,96 @@ class RoomModelTestCase(TransactionTestCase):
             room.save()
 
     def test_remove_room(self):
+        """
+        Note: Room object should not be removed, room state should be changed insteadd
+        :return:
+        """
         beds, description = 2, "test room"
         room = self._prepare_room_object(beds, description)
         room.save()
-        room = Room.objects.get(id=room.id)
-        room.delete()
-        with self.assertRaises(ObjectDoesNotExist):
-            Room.objects.get(id=room.id)
+        room.refresh_from_db()
+        self.assertEqual(room.state, 1, "Created room is not in ACTIVE (1) state")
+        room.state = 0
+        room.save()
+        room.refresh_from_db()
+        self.assertEqual(room.state, 0, "Room state is not changed to INACTIVE (0)")
 
     def test_update_room(self):
         beds, description = 2, "test room"
         room = self._prepare_room_object(beds, description)
         room.save()
-        prev_room_id, prev_room_beds, prev_room_description = room.id, room.beds, room.description
+        prev_room, prev_room_beds, prev_room_description = room.id, room.beds, room.description
         new_room_beds, new_room_description = 5, "five-bed room"
         room.beds = new_room_beds
         room.description = new_room_description
 
-        self.assertEqual(room.id, prev_room_id, "room id was changed")
+        self.assertEqual(room.id, prev_room, "room id was changed")
         self.assertEqual((room.beds, room.description), (new_room_beds, new_room_description),
                          "Room wasn't updated properly")
 
 
 class GuestModelTestCase(TransactionTestCase):
-    def _prepare_test_guest(self, first_name, last_name, passport, birthdate):
+
+    def setUp(self):
+        self.user = User.objects.create(username='tuser1', first_name='test', last_name='test',
+                                          password=hashlib.sha256("change_Me1".encode('utf-8')).hexdigest(), description="desc")
+
+    def _prepare_test_guest(self, first_name, last_name, passport, birth_date, user):
         guest = Guest()
         guest.first_name = first_name
         guest.last_name = last_name
         guest.passport = passport
-        guest.birthdate = birthdate
+        guest.birth_date = birth_date
+        guest.user = user
         return guest
 
     def test_add_guest(self):
-        first_name, last_name, passport, birthdate = "UserFirstName1", "UserLastName", "123425215", datetime.date(1992,
-                                                                                                                  12,
-                                                                                                                  12)
-        guest = self._prepare_test_guest(first_name, last_name, passport, birthdate)
+        first_name, last_name, passport, birth_date = "UserFirstName1", "UserLastName", "123425215", \
+                                                      datetime.date(1992,12,12)
+        guest = self._prepare_test_guest(first_name, last_name, passport, birth_date, self.user)
         guest.save()
 
         guest = Guest.objects.get(id=guest.id)
-        self.assertEqual((guest.first_name, guest.last_name, guest.passport, guest.birthdate),
-                         (first_name, last_name, passport, birthdate), "Guest was not added")
+        self.assertEqual((guest.first_name, guest.last_name, guest.passport, guest.birth_date),
+                         (first_name, last_name, passport, birth_date), "Guest was not added")
 
     @parameterized.expand([
-        [None, "UserName", "123456", datetime.datetime(1992, 1, 23)],
-        ["FirstName", None, "123456", datetime.datetime(1992, 1, 23)],
-        ["FirstName", "UserName", None, datetime.datetime(1992, 1, 23)],
-        ["FirstName", "UserName", "123456", None],
+        [None, "UserName", "123456", datetime.datetime(1992, 1, 23), True],
+        ["FirstName", None, "123456", datetime.datetime(1992, 1, 23), True],
+        ["FirstName", "UserName", None, datetime.datetime(1992, 1, 23), True],
+        ["FirstName", "UserName", "123456", None, True],
+        ["FirstName", "UserName", "123456", datetime.datetime(1992, 1, 23), False]
     ])
-    def test_add_guest_without_required_properties(self, first_name, last_name, passport, birthdate):
-        guest = self._prepare_test_guest(first_name, last_name, passport, birthdate)
+    def test_add_guest_without_required_properties(self, first_name, last_name, passport, birth_date, user):
+        guest = self._prepare_test_guest(first_name, last_name, passport, birth_date, self.user if user else None)
         with self.assertRaises(IntegrityError):
             guest.save()
 
     def test_update_guest(self):
-        first_name, last_name, passport, birthdate = "UserFirstName1", "UserLastName", "123425215", \
+        first_name, last_name, passport, birth_date = "UserFirstName1", "UserLastName", "123425215", \
                                                      datetime.date(1992, 12, 12)
-        guest = self._prepare_test_guest(first_name, last_name, passport, birthdate)
+        guest = self._prepare_test_guest(first_name, last_name, passport, birth_date, self.user)
         guest.save()
-        new_first_name, new_last_name, new_passport, new_birthdate = "NewUserFirstName1", "NewUserLastName", "177777777", \
+        new_first_name, new_last_name, new_passport, new_birth_date = "NewUserFirstName1", "NewUserLastName", "177777777", \
                                                                      datetime.date(1990, 5, 2)
         guest.first_name = new_first_name
         guest.last_name = new_last_name
         guest.passport = new_passport
-        guest.birthdate = new_birthdate
+        guest.birth_date = new_birth_date
         guest.save()
 
     def test_add_guest_with_duplicate_passport(self):
-        first_name, last_name, passport, birthdate = "UserFirstName1", "UserLastName", "123425215", \
+        first_name, last_name, passport, birth_date = "UserFirstName1", "UserLastName", "123425215", \
                                                      datetime.date(1992, 12, 12)
-        guest_1 = self._prepare_test_guest(first_name, last_name, passport, birthdate)
+        guest_1 = self._prepare_test_guest(first_name, last_name, passport, birth_date, self.user)
         guest_1.save()
 
-        guest_2 = self._prepare_test_guest(first_name, last_name, passport, birthdate)
+        guest_2 = self._prepare_test_guest(first_name, last_name, passport, birth_date, self.user)
         with self.assertRaises(IntegrityError):
             guest_2.save()
 
     def test_remove_guest(self):
-        guest = self._prepare_test_guest("test", "test", "123213", datetime.datetime(1987, 12, 12))
+        guest = self._prepare_test_guest("test", "test", "123213", datetime.datetime(1987, 12, 12), self.user)
         guest.save()
         guest.delete()
         with self.assertRaises(ObjectDoesNotExist):
@@ -248,16 +265,16 @@ class BookingModelTestCase(TransactionTestCase):
         self.activate_foreign_keys('OFF')
 
     def test_add_valid_booking(self):
-        start_date, end_date, user_id, room_id = datetime.datetime(2019, 1, 1), datetime.datetime(2019, 1, 11), \
+        start_date, end_date, user, room = datetime.datetime(2019, 1, 1), datetime.datetime(2019, 1, 11), \
                                                  self.user, self.room
         booking = Booking()
         booking.start_date = start_date
         booking.end_date = end_date
-        booking.user_id = user_id
-        booking.room_id = room_id
+        booking.user = user
+        booking.room = room
         booking.save()
-        self.assertEqual((booking.start_date, booking.end_date, user_id, room_id),
-                         (start_date, end_date, user_id, room_id),
+        self.assertEqual((booking.start_date, booking.end_date, user, room),
+                         (start_date, end_date, user, room),
                          "Booking was not added")
 
     def test_add_invalid_booking(self):
@@ -279,20 +296,20 @@ class BookingModelTestCase(TransactionTestCase):
         booking = Booking()
         booking.start_date = start_date
         booking.end_date = end_date
-        booking.user_id = not_saved_user
-        booking.room_id = not_saved_room
+        booking.user = not_saved_user
+        booking.room = not_saved_room
 
         with self.assertRaises(IntegrityError):
             booking.save()
 
     def test_remove_booking(self):
-        start_date, end_date, user_id, room_id = datetime.datetime(2019, 1, 1), datetime.datetime(2019, 1, 11), \
+        start_date, end_date, user, room = datetime.datetime(2019, 1, 1), datetime.datetime(2019, 1, 11), \
                                                  self.user.id, self.room.id
         booking = Booking()
         booking.start_date = start_date
         booking.end_date = end_date
-        booking.user_id = self.user
-        booking.room_id = self.room
+        booking.user = self.user
+        booking.room = self.room
         booking.save()
 
         booking.delete()
@@ -315,29 +332,29 @@ class PermissionToUserModelTestCase(TransactionTestCase):
     def test_add_permission_to_user(self):
         for access in self.read_access, self.write_access, self.delete_access:
             p_to_u = PermissionToUser()
-            p_to_u.user_id = self.user_1
-            p_to_u.permission_id = access
+            p_to_u.user = self.user_1
+            p_to_u.permission  = access
             p_to_u.save()
 
-        p_to_u1 = PermissionToUser.objects.filter(user_id=self.user_1)
-        permissions = [p_to_u.permission_id for p_to_u in p_to_u1]
+        p_to_u1 = PermissionToUser.objects.filter(user=self.user_1)
+        permissions = [p_to_u.permission  for p_to_u in p_to_u1]
         self.assertListEqual([self.read_access, self.write_access, self.delete_access],
                              permissions, "Permission list is not matching with expected")
 
         p_to_u = PermissionToUser()
-        p_to_u.user_id = self.user_2
-        p_to_u.permission_id = self.read_access
+        p_to_u.user = self.user_2
+        p_to_u.permission  = self.read_access
         p_to_u.save()
 
-        p_to_u2 = PermissionToUser.objects.filter(user_id=self.user_2)
-        permissions = [p_to_u.permission_id for p_to_u in p_to_u2]
+        p_to_u2 = PermissionToUser.objects.filter(user=self.user_2)
+        permissions = [p_to_u.permission  for p_to_u in p_to_u2]
         self.assertListEqual([self.read_access],
                              permissions, "Permission list is not matching with expected")
 
     def test_add_duplicate_permission_to_user(self):
-        PermissionToUser.objects.create(user_id=self.user_1, permission_id=self.read_access)
+        PermissionToUser.objects.create(user=self.user_1, permission =self.read_access)
         with self.assertRaises(IntegrityError):
-            PermissionToUser.objects.create(user_id=self.user_1, permission_id=self.read_access)
+            PermissionToUser.objects.create(user=self.user_1, permission =self.read_access)
 
 
 class GuestToBookingModelTestCase(TransactionTestCase):
@@ -355,7 +372,8 @@ class GuestToBookingModelTestCase(TransactionTestCase):
             guest = Guest.objects.create(first_name="test_user_%d"%idx,
                                          last_name="test_user_%d"%idx,
                                          passport="12345667%d"%idx,
-                                         birthdate=datetime.datetime(1990,12,12))
+                                         birth_date=datetime.datetime(1990,12,12),
+                                         user=test_user)
             self.guests.append(guest)
 
         number_of_test_booking = 10
@@ -363,35 +381,35 @@ class GuestToBookingModelTestCase(TransactionTestCase):
         for idx in range(number_of_test_booking):
             booking = Booking.objects.create(start_date=datetime.datetime(2018,12,24),
                                              end_date=datetime.datetime(2019, 1, 24),
-                                             user_id=test_user,
-                                             room_id=test_room)
+                                             user=test_user,
+                                             room=test_room)
             self.bookings.append(booking)
 
     def test_add_many_guests_to_one_booking(self):
         test_booking = self.bookings[0]
         for guest in self.guests:
             g_to_b = GuestToBooking()
-            g_to_b.guest_id = guest
-            g_to_b.booking_id = test_booking
+            g_to_b.guest = guest
+            g_to_b.booking = test_booking
             g_to_b.save()
 
     def test_add_one_guest_to_many_bookings(self):
         test_guest = self.guests[0]
         for booking in self.bookings:
             g_to_b = GuestToBooking()
-            g_to_b.guest_id = test_guest
-            g_to_b.booking_id = booking
+            g_to_b.guest = test_guest
+            g_to_b.booking = booking
             g_to_b.save()
 
     def test_add_duplicate_guest_to_booking(self):
         g_to_b = GuestToBooking()
-        g_to_b.guest_id = self.guests[0]
-        g_to_b.booking_id = self.bookings[0]
+        g_to_b.guest = self.guests[0]
+        g_to_b.booking = self.bookings[0]
         g_to_b.save()
 
         g_to_b = GuestToBooking()
-        g_to_b.guest_id = self.guests[0]
-        g_to_b.booking_id = self.bookings[0]
+        g_to_b.guest = self.guests[0]
+        g_to_b.booking = self.bookings[0]
         with self.assertRaises(IntegrityError):
             g_to_b.save()
 
@@ -400,8 +418,8 @@ class GuestToBookingModelTestCase(TransactionTestCase):
         test_booking = self.bookings[0]
 
         g_to_b = GuestToBooking()
-        g_to_b.guest_id = test_guest
-        g_to_b.booking_id = test_booking
+        g_to_b.guest = test_guest
+        g_to_b.booking = test_booking
         g_to_b.save()
 
         g_to_b.delete()
