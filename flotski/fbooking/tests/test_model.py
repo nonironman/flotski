@@ -5,129 +5,9 @@ from copy import copy
 from django.db import IntegrityError, connection
 from parameterized import parameterized
 from django.test import TransactionTestCase
-from fbooking.models import User, Room, Permission, PermissionToUser, Guest, Booking, GuestToBooking
+from fbooking.models import Room, Guest, Booking, GuestToBooking
+from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
-
-
-class UserModelTestCase(TransactionTestCase):
-    def _prepare_test_user_object(self, username, password, first_name, last_name, description=None):
-        user = User()
-        user.username = username
-        user.password = password
-        user.first_name = first_name
-        user.last_name = last_name
-        user.description = description
-        return user
-
-    @parameterized.expand([
-        ["valid_tuser1", hashlib.sha256("change_Me_1".encode('utf-8')).hexdigest(), "TestUserFirstName", "TestUserLastName", "test description"],
-        ["valid_tuser2", hashlib.sha256("change_Me_2".encode('utf-8')).hexdigest(), "TestUserFirstName", "TestUserLastName", None],
-    ])
-    def test_add_valid_user(self, username, password, first_name, last_name, description):
-        user = self._prepare_test_user_object(username, password, first_name, last_name, description)
-        user.save()
-
-        created_user = User.objects.get(username=username)
-        self.assertEqual((created_user.username, created_user.password, created_user.first_name,
-                          created_user.last_name, created_user.description),
-                         (username, password, first_name, last_name, description),
-                         "Saved user data doesn't match expected")
-
-    @parameterized.expand([
-        [None, hashlib.sha256("change_Me_1".encode('utf-8')).hexdigest(), "TestUserFirstName", "TestUserLastName", "test description"],
-        ["invalid_tuser2", None, "TestUserFirstName", "TestUserLastName", None],
-        ["invalid_tuser3", hashlib.sha256("change_Me_3".encode('utf-8')).hexdigest(), None, "TestUserLastName", None],
-        ["invalid_tuser4", hashlib.sha256("change_Me_4".encode('utf-8')).hexdigest(), "TestUserFirstName", None, None],
-    ])
-    def test_add_valid_user(self, username, password, first_name, last_name, description):
-        user = self._prepare_test_user_object(username, password, first_name, last_name, description)
-        with self.assertRaises(IntegrityError):
-            user.save()
-
-    def test_remove_user(self):
-        """
-        Note: User should not be removed from DB, user's state should be changed instead
-        """
-        username = "user_to_remove"
-        user = self._prepare_test_user_object(username, "", "", "", None)
-        user.save()
-        user = User.objects.get(username=username)
-        self.assertEqual(user.state, 1, "Created user state is not ACTIVE (1)")
-        user.state = 0
-        user.save()
-        user.refresh_from_db()
-        self.assertEqual(user.state, 0, "Created user state is not changed to INACTIVE (0)")
-
-    def test_update_user(self):
-        username = "user_to_update"
-        user = self._prepare_test_user_object(username, "", "", "", None)
-        user.save()
-        prev_user = user.id
-        new_properties = ("new_user_name", "new_first_name", "new_last_name", "description")
-        user.username, user.first_name, user.last_name, user.description = new_properties
-        user.save()
-        self.assertEqual(user.id, prev_user, "User id was changed")
-        self.assertEqual((user.username, user.first_name, user.last_name, user.description),
-                         new_properties, "User was not updated properly")
-
-
-class PermissionModelTestCase(TransactionTestCase):
-    def _prepare_permission_object(self, access, description):
-        permission = Permission()
-        permission.access = access
-        permission.description = description
-        return permission
-
-    @parameterized.expand([
-        ['w', 'write access'],
-        ['r', 'read access'],
-        ['u', 'update access'],
-        ['d', 'delete access']
-    ])
-    def test_add_permission(self, access, description):
-        permission = self._prepare_permission_object(access, description)
-        permission.save()
-        self.assertEqual((permission.access, permission.description), (access, description),
-                         "Specified permission was not saved properly")
-
-    @parameterized.expand([
-        ['w', None],
-        [None, 'delete access']
-    ])
-    def test_add_invalid_permission(self, access, description):
-        permission = self._prepare_permission_object(access, description)
-        with self.assertRaises(IntegrityError):
-            permission.save()
-
-    def test_add_duplicate_permission(self):
-        write_permission_1 = self._prepare_permission_object("w", "write access 1")
-        write_permission_2 = self._prepare_permission_object("w", "write access 2")
-        write_permission_1.save()
-        with self.assertRaises(IntegrityError):
-            write_permission_2.save()
-
-    def test_remove_permission(self):
-        access, description = "s", "test permission"
-        permission = self._prepare_permission_object(access, description)
-        permission.save()
-        permission = Permission.objects.get(access=access)
-        permission.delete()
-        with self.assertRaises(ObjectDoesNotExist):
-            Permission.objects.get(access=access)
-
-    def test_update_permission(self):
-        permission = self._prepare_permission_object('u', "update permission")
-        permission.save()
-        prev_permissio , prev_permission_access, prev_permission_desc = (
-        permission.id, permission.access, permission.description)
-        new_access, new_description = "X", "execute permission"
-        permission.access = new_access
-        permission.description = new_description
-        permission.save()
-        self.assertEqual(prev_permissio , permission.id, "Permission id was updated")
-        self.assertEqual((permission.access, permission.description), (new_access, new_description),
-                         "Permission was not updated properly")
-
 
 class RoomModelTestCase(TransactionTestCase):
     def _prepare_room_object(self, beds, description):
@@ -185,7 +65,7 @@ class GuestModelTestCase(TransactionTestCase):
 
     def setUp(self):
         self.user = User.objects.create(username='tuser1', first_name='test', last_name='test',
-                                          password=hashlib.sha256("change_Me1".encode('utf-8')).hexdigest(), description="desc")
+                                          password=hashlib.sha256("change_Me1".encode('utf-8')).hexdigest())
 
     def _prepare_test_guest(self, first_name, last_name, passport, birth_date, user):
         guest = Guest()
@@ -259,7 +139,7 @@ class BookingModelTestCase(TransactionTestCase):
         self.activate_foreign_keys()
         self.room = Room.objects.create(beds=2, description="test room")
         self.user = User.objects.create(username="tuser", first_name='tuser First Name', last_name='tuser Last Name',
-                                        password=hashlib.sha256("change_Me2".encode('utf-8')).hexdigest(), description=None)
+                                        password=hashlib.sha256("change_Me2".encode('utf-8')).hexdigest())
 
     def tearDown(self):
         self.activate_foreign_keys('OFF')
@@ -317,53 +197,12 @@ class BookingModelTestCase(TransactionTestCase):
         self.user.refresh_from_db()
         self.room.refresh_from_db()
 
-
-class PermissionToUserModelTestCase(TransactionTestCase):
-    def setUp(self):
-        self.read_access = Permission.objects.create(access='R', description='Read permission')
-        self.write_access = Permission.objects.create(access='W', description='Write permission')
-        self.delete_access = Permission.objects.create(access='D', description='Write permission')
-
-        self.user_1 = User.objects.create(username='tuser1', first_name='test', last_name='test',
-                                          password='qwerty', description="desc")
-        self.user_2 = User.objects.create(username='tuser2', first_name='test', last_name='test',
-                                          password='qwerty', description="desc")
-
-    def test_add_permission_to_user(self):
-        for access in self.read_access, self.write_access, self.delete_access:
-            p_to_u = PermissionToUser()
-            p_to_u.user = self.user_1
-            p_to_u.permission  = access
-            p_to_u.save()
-
-        p_to_u1 = PermissionToUser.objects.filter(user=self.user_1)
-        permissions = [p_to_u.permission  for p_to_u in p_to_u1]
-        self.assertListEqual([self.read_access, self.write_access, self.delete_access],
-                             permissions, "Permission list is not matching with expected")
-
-        p_to_u = PermissionToUser()
-        p_to_u.user = self.user_2
-        p_to_u.permission  = self.read_access
-        p_to_u.save()
-
-        p_to_u2 = PermissionToUser.objects.filter(user=self.user_2)
-        permissions = [p_to_u.permission  for p_to_u in p_to_u2]
-        self.assertListEqual([self.read_access],
-                             permissions, "Permission list is not matching with expected")
-
-    def test_add_duplicate_permission_to_user(self):
-        PermissionToUser.objects.create(user=self.user_1, permission =self.read_access)
-        with self.assertRaises(IntegrityError):
-            PermissionToUser.objects.create(user=self.user_1, permission =self.read_access)
-
-
 class GuestToBookingModelTestCase(TransactionTestCase):
     def setUp(self):
         test_user = User.objects.create(username='tuser',
                                         first_name='Tuser',
                                         last_name='Tuser',
-                                        password=hashlib.sha256("change_Me_1".encode('utf-8')).hexdigest(),
-                                        description="")
+                                        password=hashlib.sha256("change_Me_1".encode('utf-8')).hexdigest())
         test_room = Room.objects.create(beds=2,
                                         description="")
         number_of_test_guests = 10
